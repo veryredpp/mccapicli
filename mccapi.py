@@ -10,7 +10,9 @@ def main():
 
     if selection == 1:
         response = requests.get(url + "/v1/event")
-        pprint.pprint(response.json().get('data'))
+        print("\nEvent:", response.json().get('data').get('event'))
+        print("Date:", response.json().get('data').get('date'))
+        print("Update Video:", response.json().get('data').get('updateVideo'))
     elif selection == 2:
         print("\n1. Entire Hall of Fame\n2. Hall of Fame for a specific game")
         selection2 = int(input("Select -> "))
@@ -30,11 +32,16 @@ def main():
         response = requests.get(url + "/v1/rundown")
         pprint.pprint(response.json().get('data'))
     elif selection == 4:
+        teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
         if selection2 == 1:
             response = requests.get(url + "/v1/participants")
-            pprint.pprint(response.json().get('data'))
+            for i in teams:
+                temp_list = response.json().get('data').get(i)
+                print(i+":")
+                for j in range(len(temp_list)):
+                    print(" "+temp_list[j].get('username')+"    "+"UUID: "+temp_list[j].get('uuid'))
         elif selection2 == 2:
             print("\nSpectators and None are considered teams. For a full list of the teams write '?' without quotes below. Type in ALL CAPS.")
             team = input("Select Team -> ")
