@@ -4,6 +4,7 @@ def main():
     url = "https://api.mcchampionship.com"
 
     parameters = {}
+    teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
     print("MCC Event API")
     print("1. Event Information\n2. Hall of Fame\n3. Event Rundown\n4. Participants")
     selection = int(input("Select -> "))
@@ -34,10 +35,20 @@ def main():
         dodgeboltdata = response.json().get('data').get('dodgeboltData')
         dodgeboltkeys = list(dodgeboltdata.keys())
         dodgeboltkeys.remove("placeholder")
-        print("Dodgebolt:")
-        print(f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}")
+        print("\nDodgebolt:")
+        print(f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}\n")
+        teamsplaces = []
+        for i in teams:
+            teamsplaces.append(response.json().get('data').get('eventPlacements').get(i))
+        for i in range(2):
+            teamsplaces.remove(None)
+        teamsplaces.sort()
+        print("\nPlacements:")
+        for i in teamsplaces:
+            for j in teams:
+                if response.json().get('data').get('eventPlacements').get(j) == i:
+                    print(f"{i+1}. {j}  {response.json().get('data').get('eventScores').get(j)}")
     elif selection == 4:
-        teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
         if selection2 == 1:
