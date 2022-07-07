@@ -30,7 +30,12 @@ def main():
             pprint.pprint(response.json().get('data'))
     elif selection == 3:
         response = requests.get(url + "/v1/rundown")
-        pprint.pprint(response.json().get('data'))
+        #pprint.pprint(response.json().get('data'))
+        dodgeboltdata = response.json().get('data').get('dodgeboltData')
+        dodgeboltkeys = list(dodgeboltdata.keys())
+        dodgeboltkeys.remove("placeholder")
+        print("Dodgebolt:")
+        print(f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}")
     elif selection == 4:
         teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
