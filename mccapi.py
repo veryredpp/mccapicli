@@ -41,7 +41,7 @@ def main():
                 temp_list = response.json().get('data').get(i)
                 print(i+":")
                 for j in range(len(temp_list)):
-                    print(" "+temp_list[j].get('username')+"    "+"UUID: "+temp_list[j].get('uuid'))
+                    print(" "+temp_list[j].get('username'))
         elif selection2 == 2:
             print("\nSpectators and None are considered teams. For a full list of the teams write '?' without quotes below. Type in ALL CAPS.")
             team = input("Select Team -> ")
@@ -50,7 +50,10 @@ def main():
                 team = input("Select Team -> ")
             parameters["team"] = team
             response = requests.get(url + "/v1/participants" + "/" + parameters["team"], params=parameters)
-            pprint.pprint(response.json().get('data'))
+            temp_list = response.json().get('data')
+            print("\n"+team+":")
+            for i in range(len(temp_list)):
+                print(" "+temp_list[i].get('username'))
         
 # I refuse to do normal methods, I don't care. While True is funny right? Right? RIGHT?    
 while True:
