@@ -43,11 +43,24 @@ def main():
         for i in range(2):
             teamsplaces.remove(None)
         teamsplaces.sort()
-        print("\nPlacements:")
+        print("Placements:")
         for i in teamsplaces:
             for j in teams:
                 if response.json().get('data').get('eventPlacements').get(j) == i:
-                    print(f"{i+1}. {j}  {response.json().get('data').get('eventScores').get(j)}")
+                    print(f"{i+1}. {j}  {response.json().get('data').get('eventScores').get(j)}") 
+        playerscoredata = response.json().get('data').get('individualScores')
+        playerscorekeys = list(playerscoredata.keys())
+        print("\nIndividual Scores:")
+        playerscore = []
+        for i in playerscorekeys:
+            playerscore.append(playerscoredata[i])
+        playerscore.sort(reverse=True)
+        counter = 0
+        for i in playerscore:
+            for j in playerscorekeys:
+                if i == response.json().get('data').get('individualScores').get(j):
+                    counter += 1
+                    print(f"{counter}. {j}  {i}")
     elif selection == 4:
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
