@@ -4,16 +4,13 @@ def main():
     url = "https://api.mcchampionship.com"
 
     parameters = {}
-    teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
     print("MCC Event API")
     print("1. Event Information\n2. Hall of Fame\n3. Event Rundown\n4. Participants")
     selection = int(input("Select -> "))
 
     if selection == 1:
         response = requests.get(url + "/v1/event")
-        print("\nEvent:", response.json().get('data').get('event'))
-        print("Date:", response.json().get('data').get('date'))
-        print("Update Video:", response.json().get('data').get('updateVideo'))
+        pprint.pprint(response.json().get('data'))
     elif selection == 2:
         print("\n1. Entire Hall of Fame\n2. Hall of Fame for a specific game")
         selection2 = int(input("Select -> "))
@@ -31,46 +28,13 @@ def main():
             pprint.pprint(response.json().get('data'))
     elif selection == 3:
         response = requests.get(url + "/v1/rundown")
-        #pprint.pprint(response.json().get('data'))
-        dodgeboltdata = response.json().get('data').get('dodgeboltData')
-        dodgeboltkeys = list(dodgeboltdata.keys())
-        dodgeboltkeys.remove("placeholder")
-        print("\nDodgebolt:")
-        print(f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}\n")
-        teamsplaces = []
-        for i in teams:
-            teamsplaces.append(response.json().get('data').get('eventPlacements').get(i))
-        for i in range(2):
-            teamsplaces.remove(None)
-        teamsplaces.sort()
-        print("Placements:")
-        for i in teamsplaces:
-            for j in teams:
-                if response.json().get('data').get('eventPlacements').get(j) == i:
-                    print(f"{i+1}. {j}  {response.json().get('data').get('eventScores').get(j)}") 
-        playerscoredata = response.json().get('data').get('individualScores')
-        playerscorekeys = list(playerscoredata.keys())
-        print("\nIndividual Scores:")
-        playerscore = []
-        for i in playerscorekeys:
-            playerscore.append(playerscoredata[i])
-        playerscore.sort(reverse=True)
-        counter = 0
-        for i in playerscore:
-            for j in playerscorekeys:
-                if i == response.json().get('data').get('individualScores').get(j):
-                    counter += 1
-                    print(f"{counter}. {j}  {i}")
+        pprint.pprint(response.json().get('data'))
     elif selection == 4:
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
         if selection2 == 1:
             response = requests.get(url + "/v1/participants")
-            for i in teams:
-                temp_list = response.json().get('data').get(i)
-                print(i+":")
-                for j in range(len(temp_list)):
-                    print(" "+temp_list[j].get('username'))
+            pprint.pprint(response.json().get('data'))
         elif selection2 == 2:
             print("\nSpectators and None are considered teams. For a full list of the teams write '?' without quotes below. Type in ALL CAPS.")
             team = input("Select Team -> ")
@@ -79,10 +43,9 @@ def main():
                 team = input("Select Team -> ")
             parameters["team"] = team
             response = requests.get(url + "/v1/participants" + "/" + parameters["team"], params=parameters)
-            temp_list = response.json().get('data')
-            print("\n"+team+":")
-            for i in range(len(temp_list)):
-                print(" "+temp_list[i].get('username'))
-
-if __name__ == "__main__":
-    main()
+            pprint.pprint(response.json().get('data'))
+        
+# I refuse to do normal methods, I don't care. While True is funny right? Right? RIGHT?    
+while True:
+    main()  # I'm not sure if this is the best way to do this, but it works.
+    print("\n\n\n")
