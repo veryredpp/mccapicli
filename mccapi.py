@@ -83,8 +83,6 @@ def main():
             print("\n"+team+":")
             for i in range(len(temp_list)):
                 print(" "+temp_list[i].get('username'))
-        
-# I refuse to do normal methods, I don't care. While True is funny right? Right? RIGHT?    
-while True:
-    main()  # I'm not sure if this is the best way to do this, but it works.
-    print("\n\n\n")
+
+if __name__ == "__main__":
+    main()
