@@ -85,6 +85,6 @@ def main():
                 print(" "+temp_list[i].get('username'))
     print("\n\n")
 
-if __name__ == "__main__":
-    while True:
+while True:
+    if __name__ == "__main__":
         main()
