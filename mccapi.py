@@ -83,6 +83,7 @@ def main():
             print("\n"+team+":")
             for i in range(len(temp_list)):
                 print(" "+temp_list[i].get('username'))
+    print("\n\n")
 
 if __name__ == "__main__":
     while True:
