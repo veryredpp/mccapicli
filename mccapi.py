@@ -5,7 +5,7 @@ def main():
 
     parameters = {}
     teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
-    print("MCC Event API")
+    print("MCC Event API CLI")
     print("1. Event Information\n2. Hall of Fame\n3. Event Rundown\n4. Participants")
     selection = int(input("Select -> "))
 
