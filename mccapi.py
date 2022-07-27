@@ -14,6 +14,7 @@ def main():
         print("\nEvent:", response.json().get('data').get('event'))
         print("Date:", response.json().get('data').get('date'))
         print("Update Video:", response.json().get('data').get('updateVideo'))
+
     elif selection == 2:
         print("\n1. Entire Hall of Fame\n2. Hall of Fame for a specific game")
         selection2 = int(input("Select -> "))
@@ -29,6 +30,7 @@ def main():
             parameters["game"] = game
             response = requests.get(url + "/v1/halloffame" + "/" + parameters["game"], params=parameters)
             pprint.pprint(response.json().get('data'))
+
     elif selection == 3:
         response = requests.get(url + "/v1/rundown")
         #pprint.pprint(response.json().get('data'))
@@ -61,6 +63,7 @@ def main():
                 if i == response.json().get('data').get('individualScores').get(j):
                     counter += 1
                     print(f"{counter}. {j}  {i}")
+
     elif selection == 4:
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
