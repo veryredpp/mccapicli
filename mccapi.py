@@ -1,5 +1,40 @@
 import requests
 import pprint
+
+games = {
+    "Rocket Spleef" : "MG_ROCKET_SPLEEF",
+    "Survival Games" : "MG_SURVIVAL_GAMES",
+    "Parkour Warrior" : "MG_PARKOUR_WARRIOR",
+    "Ace Race" : "MG_ACE_RACE",
+    "Bingo But Fast" : "MG_BINGO_BUT_FAST",
+    "TGTTOSAWAF" : "MG_TGTTOSAWAF",
+    "TGTTOS" : "MG_TGTTOSAWAF",
+    "To Get To The Other Side" : "MG_TGTTOSAWAF",
+    "To Get To The Other Side And Whack A Fan" : "MG_TGTTOSAWAF",
+    "Skyblockle" : "MG_SKYBLOCKLE",
+    "Sky Battle" : "MG_SKY_BATTLE",
+    "SB" : "MG_SKY_BATTLE",
+    "Hole In The Wall" : "MG_HOLE_IN_THE_WALL",
+    "HITW" : "MG_HOLE_IN_THE_WALL",
+    "Battle Box" : "MG_BATTLE_BOX",
+    "BB" : "MG_BATTLE_BOX",
+    "Build Mart" : "MG_BUILD_MART",
+    "BM" : "MG_BUILD_MART",
+    "Sands of Time" : "MG_SANDS_OF_TIME",
+    "Sands Of Time" : "MG_SANDS_OF_TIME",
+    "SOT" : "MG_SANDS_OF_TIME",
+    "Dodgebolt" : "MG_DODGEBOLT",
+    "DB" : "MG_DODGEBOLT",
+    "Parkour Tag" : "MG_PARKOUR_TAG",
+    "PT" : "MG_PARKOUR_TAG",
+    "Grid Runners" : "MG_GRID_RUNNERS",
+    "GR" : "MG_GRID_RUNNERS",
+    "MELTDOWN" : "MD_MELTDOWN",
+    "MD" : "MD_MELTDOWN"
+    
+    
+    
+}
 def main():
     url = "https://api.mcchampionship.com"
 
@@ -22,12 +57,12 @@ def main():
             response = requests.get(url + "/v1/halloffame")
             pprint.pprint(response.json().get('data'))
         elif selection2 == 2:
-            print("\nIf you don't know the id values for the games type '?' without quotes below, Hint: Type a 'MG_' in the front and then the games name replacing its spaces with underscores (ALL CAPS).")
-            game = input("Game ID -> ")
+            print("\nTo see a list of all the games type ?")
+            game = input("Game Name -> ")
             while game == "?":
-                print("\nAvailable values :\n MG_ROCKET_SPLEEF\n MG_SURVIVAL_GAMES\n MG_PARKOUR_WARRIOR\n MG_ACE_RACE\n MG_BINGO_BUT_FAST\n MG_TGTTOSAWAF\n MG_SKYBLOCKLE\n MG_SKY_BATTLE\n MG_HOLE_IN_THE_WALL\n MG_BATTLE_BOX\n MG_BUILD_MART\n MG_SANDS_OF_TIME\n MG_DODGEBOLT\n MG_PARKOUR_TAG\n MG_GRID_RUNNERS\n MG_MELTDOWN\n GLOBAL_STATISTICS\n LEGACY_STATISTICS")
-                game = input("Enter game name -> ")
-            parameters["game"] = game
+                print(games)
+                game = input("Game Name -> ")
+            parameters["game"] = games[game]
             response = requests.get(url + "/v1/halloffame" + "/" + parameters["game"], params=parameters)
             pprint.pprint(response.json().get('data'))
 
