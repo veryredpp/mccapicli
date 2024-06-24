@@ -66,22 +66,6 @@ def main():
             update_video = "Not released"
         print(f"Updated Video: {update_video}")
 
-    elif selection == 2:
-        print("\n1. Entire Hall of Fame\n2. Hall of Fame for a specific game")
-        selection2 = int(input("Select -> "))
-        if selection2 == 1:
-            response = requests.get(url + "/v1/halloffame")
-            pprint.pprint(response.json().get('data'))
-        elif selection2 == 2:
-            print("\nTo see a list of all the games type ?")
-            game = input("Game Name -> ")
-            while game == "?":
-                print(games)
-                game = input("Game Name -> ")
-            parameters["game"] = games[game]
-            response = requests.get(url + "/v1/halloffame" + "/" + parameters["game"], params=parameters)
-            pprint.pprint(response.json().get('data'))
-
     elif selection == 3:
         response = requests.get(url + "/v1/rundown")
         dodgeboltdata = response.json().get('data').get('dodgeboltData')
