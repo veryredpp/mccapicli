@@ -43,7 +43,7 @@ def main():
     parameters = {}
     teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
 
-    selection_types = ["Event Information", "Hall of Fame", "Event Rundown", "Participants"]
+    selection_types = ["Event Information", "Event Rundown", "Participants"]
     prompt = inquirer.prompt([inquirer.List("selection", message='MCC Event API CLI', choices=selection_types)])
     selection = prompt["selection"]
 
@@ -66,40 +66,46 @@ def main():
             update_video = "Not released"
         print(f"Updated Video: {update_video}")
 
-    elif selection == 3:
+    elif selection == "Event Rundown":
         response = requests.get(url + "/v1/rundown")
-        dodgeboltdata = response.json().get('data').get('dodgeboltData')
-        dodgeboltkeys = list(dodgeboltdata.keys())
-        dodgeboltkeys.remove("placeholder")
-        print("\nDodgebolt:")
-        print(
-            f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}\n")
-        teamsplaces = []
-        for i in teams:
-            teamsplaces.append(response.json().get('data').get('eventPlacements').get(i))
-        for i in range(2):
-            teamsplaces.remove(None)
-        teamsplaces.sort()
-        print("Placements:")
-        for i in teamsplaces:
-            for j in teams:
-                if response.json().get('data').get('eventPlacements').get(j) == i:
-                    print(f"{i + 1}. {j}  {response.json().get('data').get('eventScores').get(j)}")
-        playerscoredata = response.json().get('data').get('individualScores')
-        playerscorekeys = list(playerscoredata.keys())
-        print("\nIndividual Scores:")
-        playerscore = []
-        for i in playerscorekeys:
-            playerscore.append(playerscoredata[i])
-        playerscore.sort(reverse=True)
-        counter = 0
-        for i in playerscore:
-            for j in playerscorekeys:
-                if i == response.json().get('data').get('individualScores').get(j):
-                    counter += 1
-                    print(f"{counter}. {j}  {i}")
 
-    elif selection == 4:
+        # dodgebolt score
+        dodgebolt_data = response.json().get('data').get('dodgeboltData')
+        dodgebolt_keys = list(dodgebolt_data.keys())
+        print("\nDodgebolt:")
+        print(f" {dodgebolt_keys[0]} {dodgebolt_data[dodgebolt_keys[0]]}-{dodgebolt_data[dodgebolt_keys[1]]} {dodgebolt_keys[1]}\n")
+
+        # team leaderboards
+        teams_places = []
+        for team in teams:
+            teams_places.append(response.json().get('data').get('eventPlacements').get(team))
+        for i in range(2):
+            teams_places.remove(None)
+        teams_places.sort()
+        print("Placements:")
+        for team_place in teams_places:
+            for team in teams:
+                if response.json().get('data').get('eventPlacements').get(team) == team_place:
+                    placement = team_place + 1
+                    score = response.json()['data']['eventScores'][team]
+                    print(f"{placement:2}. {team:<9}{score:>6}")
+
+        # player scores
+        player_score_data = response.json().get('data').get('individualScores')
+
+        if "placeholder" in player_score_data:
+            del player_score_data["placeholder"]
+
+        print("\nIndividual Scores:")
+        player_scores = [(player, score if score is not None else 0) for player, score in player_score_data.items()]
+        player_scores.sort(key=lambda x: x[1], reverse=True)
+
+        counter = 0
+        for player, score in player_scores:
+            counter += 1
+            print(f"{counter:2}. {player:<15} {score}")
+
+    elif selection == "Participants":
         print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
         selection2 = int(input("Select -> "))
         if selection2 == 1:
