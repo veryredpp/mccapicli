@@ -37,13 +37,13 @@ games = {
 }
 
 
-def main():
+def main() -> int:
     url = "https://api.mcchampionship.com"
 
     parameters = {}
     teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
 
-    selection_types = ["Event Information", "Event Rundown", "Participants"]
+    selection_types = ["Event Information", "Event Rundown", "Participants", "Exit"]
     prompt = inquirer.prompt([inquirer.List("selection", message='MCC Event API CLI', choices=selection_types)])
     selection = prompt["selection"]
 
@@ -106,31 +106,35 @@ def main():
             print(f"{counter:2}. {player:<15} {score}")
 
     elif selection == "Participants":
-        print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
-        selection2 = int(input("Select -> "))
-        if selection2 == 1:
+        selection_types2 = ["All of the participants, grouped by their teams", "Participants in a given team"]
+        prompt2 = inquirer.prompt([inquirer.List("selection2", choices=selection_types2)])
+        selection2 = prompt2["selection2"]
+
+        if selection2 == "All of the participants, grouped by their teams":
             response = requests.get(url + "/v1/participants")
             for i in teams:
                 temp_list = response.json().get('data').get(i)
                 print(i + ":")
                 for j in range(len(temp_list)):
                     print(" " + temp_list[j].get('username'))
-        elif selection2 == 2:
-            print(
-                "\nSpectators and None are considered teams. For a full list of the teams write '?' without quotes below. Type in ALL CAPS.")
-            team = input("Select Team -> ")
-            while team == "?":
-                print(
-                    "\nAvailable values :\n RED\n ORANGE\n YELLOW\n LIME\n GREEN\n AQUA\n CYAN\n BLUE\n PURPLE\n PINK\n SPECTATORS\n NONE")
-                team = input("Select Team -> ")
+                print()
+
+        elif selection2 == "Participants in a given team":
+            prompt_teams = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])
+            team = prompt_teams['team_selection']
             parameters["team"] = team
             response = requests.get(url + "/v1/participants" + "/" + parameters["team"], params=parameters)
             temp_list = response.json().get('data')
             print("\n" + team + ":")
             for i in range(len(temp_list)):
                 print(" " + temp_list[i].get('username'))
-    print("\n\n")
+
+    elif selection == "Exit":
+        return -1
+    print("\n")
 
 
 if __name__ == "__main__":
-    main()
+    while main() != -1:
+        pass
+    exit()
