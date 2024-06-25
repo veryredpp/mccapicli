@@ -125,10 +125,10 @@ def main() -> int:
                 print()
 
         elif selection2 == "Participants in a given team":
-            team_selection = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])[
-                'team_selection']
-            team_members = participants_data.get(team_selection, [])
-            print(f"\n{team_selection}:")
+            team_selection = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])
+            team = team_selection['team']
+            team_members = participants_data.get(team, [])
+            print(f"\n{team}:")
             for member in team_members:
                 print(f"  {member.get('username')}")
 
