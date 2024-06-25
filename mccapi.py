@@ -1,5 +1,5 @@
 import requests
-import pprint
+from pprint import pprint
 import inquirer
 import datetime
 
@@ -43,34 +43,36 @@ def main() -> int:
     parameters = {}
     teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
 
+    # make requests beforehand
+    response_event_info = requests.get(url + "/v1/event")
+    response_event_rundown = requests.get(url + "/v1/rundown")
+    response_participants = requests.get(url + "/v1/participants")
+
     selection_types = ["Event Information", "Event Rundown", "Participants", "Exit"]
     prompt = inquirer.prompt([inquirer.List("selection", message='MCC Event API CLI', choices=selection_types)])
     selection = prompt["selection"]
 
     if selection == "Event Information":
-        response = requests.get(url + "/v1/event")
-
         # event name
-        event_name = response.json().get('data').get('event')
+        event_name = response_event_info.json().get('data').get('event')
         print(f"Event: {event_name}")
 
         # fix unreadable date-time format
-        date_str = response.json().get('data').get('date')
+        date_str = response_event_info.json().get('data').get('date')
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
         formatted_date = date_obj.strftime("%B %d, %Y %I:%M %p")
         print(f"Date: {formatted_date}")
 
         # Check for None reply
-        update_video = response.json().get('data').get('updateVideo')
+        update_video = response_event_info.json().get('data').get('updateVideo')
         if update_video == "None":  # none is a bit vague
             update_video = "Not released"
         print(f"Updated Video: {update_video}")
 
     elif selection == "Event Rundown":
-        response = requests.get(url + "/v1/rundown")
 
         # dodgebolt score
-        dodgebolt_data = response.json().get('data').get('dodgeboltData')
+        dodgebolt_data = response_event_rundown.json().get('data').get('dodgeboltData')
         dodgebolt_keys = list(dodgebolt_data.keys())
         print("\nDodgebolt:")
         print(f" {dodgebolt_keys[0]} {dodgebolt_data[dodgebolt_keys[0]]}-{dodgebolt_data[dodgebolt_keys[1]]} {dodgebolt_keys[1]}\n")
@@ -78,20 +80,20 @@ def main() -> int:
         # team leaderboards
         teams_places = []
         for team in teams:
-            teams_places.append(response.json().get('data').get('eventPlacements').get(team))
+            teams_places.append(response_event_rundown.json().get('data').get('eventPlacements').get(team))
         for i in range(2):
             teams_places.remove(None)
         teams_places.sort()
         print("Placements:")
         for team_place in teams_places:
             for team in teams:
-                if response.json().get('data').get('eventPlacements').get(team) == team_place:
+                if response_event_rundown.json().get('data').get('eventPlacements').get(team) == team_place:
                     placement = team_place + 1
-                    score = response.json()['data']['eventScores'][team]
+                    score = response_event_rundown.json()['data']['eventScores'][team]
                     print(f"{placement:2}. {team:<9}{score:>6}")
 
         # player scores
-        player_score_data = response.json().get('data').get('individualScores')
+        player_score_data = response_event_rundown.json().get('data').get('individualScores')
 
         if "placeholder" in player_score_data:
             del player_score_data["placeholder"]
@@ -110,24 +112,25 @@ def main() -> int:
         prompt2 = inquirer.prompt([inquirer.List("selection2", choices=selection_types2)])
         selection2 = prompt2["selection2"]
 
+        participants_data = response_participants.json().get('data')
+
+        # List of teams (keys in the participants data)
+        teams = list(participants_data.keys())
+
         if selection2 == "All of the participants, grouped by their teams":
-            response = requests.get(url + "/v1/participants")
-            for i in teams:
-                temp_list = response.json().get('data').get(i)
-                print(i + ":")
-                for j in range(len(temp_list)):
-                    print(" " + temp_list[j].get('username'))
+            for team, members in participants_data.items():
+                print(f"{team}:")
+                for member in members:
+                    print(f"  {member.get('username')}")
                 print()
 
         elif selection2 == "Participants in a given team":
-            prompt_teams = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])
-            team = prompt_teams['team_selection']
-            parameters["team"] = team
-            response = requests.get(url + "/v1/participants" + "/" + parameters["team"], params=parameters)
-            temp_list = response.json().get('data')
-            print("\n" + team + ":")
-            for i in range(len(temp_list)):
-                print(" " + temp_list[i].get('username'))
+            team_selection = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])[
+                'team_selection']
+            team_members = participants_data.get(team_selection, [])
+            print(f"\n{team_selection}:")
+            for member in team_members:
+                print(f"  {member.get('username')}")
 
     elif selection == "Exit":
         return -1
