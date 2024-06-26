@@ -1,128 +1,137 @@
 import requests
-import pprint
+from pprint import pprint
+import inquirer
+import datetime
+import logging
 
-games = {
-    "Rocket Spleef" : "MG_ROCKET_SPLEEF",
-    "Survival Games" : "MG_SURVIVAL_GAMES",
-    "Parkour Warrior" : "MG_PARKOUR_WARRIOR",
-    "Ace Race" : "MG_ACE_RACE",
-    "Bingo But Fast" : "MG_BINGO_BUT_FAST",
-    "TGTTOSAWAF" : "MG_TGTTOSAWAF",
-    "TGTTOS" : "MG_TGTTOSAWAF",
-    "To Get To The Other Side" : "MG_TGTTOSAWAF",
-    "To Get To The Other Side And Whack A Fan" : "MG_TGTTOSAWAF",
-    "Skyblockle" : "MG_SKYBLOCKLE",
-    "Sky Battle" : "MG_SKY_BATTLE",
-    "SB" : "MG_SKY_BATTLE",
-    "Hole In The Wall" : "MG_HOLE_IN_THE_WALL",
-    "HITW" : "MG_HOLE_IN_THE_WALL",
-    "Battle Box" : "MG_BATTLE_BOX",
-    "BB" : "MG_BATTLE_BOX",
-    "Build Mart" : "MG_BUILD_MART",
-    "BM" : "MG_BUILD_MART",
-    "Sands of Time" : "MG_SANDS_OF_TIME",
-    "Sands Of Time" : "MG_SANDS_OF_TIME",
-    "SOT" : "MG_SANDS_OF_TIME",
-    "Dodgebolt" : "MG_DODGEBOLT",
-    "DB" : "MG_DODGEBOLT",
-    "Parkour Tag" : "MG_PARKOUR_TAG",
-    "PT" : "MG_PARKOUR_TAG",
-    "Grid Runners" : "MG_GRID_RUNNERS",
-    "GR" : "MG_GRID_RUNNERS",
-    "MELTDOWN" : "MD_MELTDOWN",
-    "MD" : "MD_MELTDOWN"
-    
-    
-    
-}
-def main():
+logging.basicConfig(level=logging.ERROR)
+
+def make_request(url: str):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises HTTPError for bad responses
+        return response
+    except requests.exceptions.HTTPError as http_err:
+        logging.error(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.ConnectionError as conn_err:
+        logging.error(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        logging.error(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"An error occurred while making the request: {req_err}")
+    raise 
+
+def fetch_data(base_url: str):
+    endpoints = ["/v1/event", "/v1/rundown", "/v1/participants"]
+    data = []
+    for endpoint in endpoints:
+        url = f"{base_url}{endpoint}"
+        response = make_request(url)
+        try:
+            data.append(response.json())  
+        except ValueError:  
+            logging.error(f"Error decoding JSON from response for {url}")
+            data.append(None)  
+    return data
+
+def main() -> int:
     url = "https://api.mcchampionship.com"
 
     parameters = {}
     teams = ["RED", "ORANGE", "YELLOW", "LIME", "GREEN", "AQUA", "CYAN", "BLUE", "PURPLE", "PINK", "SPECTATORS", "NONE"]
-    print("MCC Event API CLI")
-    print("1. Event Information\n2. Hall of Fame\n3. Event Rundown\n4. Participants")
-    selection = int(input("Select -> "))
+    
+    response_event_info, response_event_rundown, response_participants = fetch_data(url)
 
-    if selection == 1:
-        response = requests.get(url + "/v1/event")
-        print("\nEvent:", response.json().get('data').get('event'))
-        print("Date:", response.json().get('data').get('date'))
-        print("Update Video:", response.json().get('data').get('updateVideo'))
+    selection_types = ["Event Information", "Event Rundown", "Participants", "Exit"]
+    prompt = inquirer.prompt([inquirer.List("selection", message='MCC Event API CLI', choices=selection_types)])
+    selection = prompt["selection"]
 
-    elif selection == 2:
-        print("\n1. Entire Hall of Fame\n2. Hall of Fame for a specific game")
-        selection2 = int(input("Select -> "))
-        if selection2 == 1:
-            response = requests.get(url + "/v1/halloffame")
-            pprint.pprint(response.json().get('data'))
-        elif selection2 == 2:
-            print("\nTo see a list of all the games type ?")
-            game = input("Game Name -> ")
-            while game == "?":
-                print(games)
-                game = input("Game Name -> ")
-            parameters["game"] = games[game]
-            response = requests.get(url + "/v1/halloffame" + "/" + parameters["game"], params=parameters)
-            pprint.pprint(response.json().get('data'))
+    if selection == "Event Information":
+        # event name
+        event_name = response_event_info.get('data').get('event')
+        print(f"Event: {event_name}")
 
-    elif selection == 3:
-        response = requests.get(url + "/v1/rundown")
-        #pprint.pprint(response.json().get('data'))
-        dodgeboltdata = response.json().get('data').get('dodgeboltData')
-        dodgeboltkeys = list(dodgeboltdata.keys())
-        dodgeboltkeys.remove("placeholder")
+        # fix unreadable date-time format
+        date_str = response_event_info.get('data').get('date')
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+        formatted_date = date_obj.strftime("%B %d, %Y %I:%M %p")
+        print(f"Date: {formatted_date}")
+
+        # Check for None reply
+        update_video = response_event_info.get('data').get('updateVideo')
+        if update_video == "None":  # API returns "None" as a string
+            update_video = "Not released"
+        print(f"Updated Video: {update_video}")
+
+    elif selection == "Event Rundown":
+
+        # dodgebolt score
+        dodgebolt_data = response_event_rundown.get('data').get('dodgeboltData')
+        dodgebolt_keys = list(dodgebolt_data.keys())
         print("\nDodgebolt:")
-        print(f"    {dodgeboltkeys[0]} {dodgeboltdata[dodgeboltkeys[0]]}-{dodgeboltdata[dodgeboltkeys[1]]} {dodgeboltkeys[1]}\n")
-        teamsplaces = []
-        for i in teams:
-            teamsplaces.append(response.json().get('data').get('eventPlacements').get(i))
+        print(f" {dodgebolt_keys[0]} {dodgebolt_data[dodgebolt_keys[0]]}-{dodgebolt_data[dodgebolt_keys[1]]} {dodgebolt_keys[1]}\n")
+
+        # team leaderboards
+        teams_places = []
+        for team in teams:
+            teams_places.append(response_event_rundown.get('data').get('eventPlacements').get(team))
         for i in range(2):
-            teamsplaces.remove(None)
-        teamsplaces.sort()
+            teams_places.remove(None)
+        teams_places.sort()
         print("Placements:")
-        for i in teamsplaces:
-            for j in teams:
-                if response.json().get('data').get('eventPlacements').get(j) == i:
-                    print(f"{i+1}. {j}  {response.json().get('data').get('eventScores').get(j)}") 
-        playerscoredata = response.json().get('data').get('individualScores')
-        playerscorekeys = list(playerscoredata.keys())
+        for team_place in teams_places:
+            for team in teams:
+                if response_event_rundown.get('data').get('eventPlacements').get(team) == team_place:
+                    placement = team_place + 1
+                    score = response_event_rundown['data']['eventScores'][team]
+                    print(f"{placement:2}. {team:<9}{score:>6}")
+
+        # player scores
+        player_score_data = response_event_rundown.get('data').get('individualScores')
+
+        if "placeholder" in player_score_data:
+            del player_score_data["placeholder"]
+
         print("\nIndividual Scores:")
-        playerscore = []
-        for i in playerscorekeys:
-            playerscore.append(playerscoredata[i])
-        playerscore.sort(reverse=True)
+        player_scores = [(player, score if score is not None else 0) for player, score in player_score_data.items()]
+        player_scores.sort(key=lambda x: x[1], reverse=True)
+
         counter = 0
-        for i in playerscore:
-            for j in playerscorekeys:
-                if i == response.json().get('data').get('individualScores').get(j):
-                    counter += 1
-                    print(f"{counter}. {j}  {i}")
+        for player, score in player_scores:
+            counter += 1
+            print(f"{counter:2}. {player:<15} {score}")
 
-    elif selection == 4:
-        print("\n1. All of the participants, grouped by their teams\n2. Participants in a given team")
-        selection2 = int(input("Select -> "))
-        if selection2 == 1:
-            response = requests.get(url + "/v1/participants")
-            for i in teams:
-                temp_list = response.json().get('data').get(i)
-                print(i+":")
-                for j in range(len(temp_list)):
-                    print(" "+temp_list[j].get('username'))
-        elif selection2 == 2:
-            print("\nSpectators and None are considered teams. For a full list of the teams write '?' without quotes below. Type in ALL CAPS.")
-            team = input("Select Team -> ")
-            while team == "?":
-                print("\nAvailable values :\n RED\n ORANGE\n YELLOW\n LIME\n GREEN\n AQUA\n CYAN\n BLUE\n PURPLE\n PINK\n SPECTATORS\n NONE")
-                team = input("Select Team -> ")
-            parameters["team"] = team
-            response = requests.get(url + "/v1/participants" + "/" + parameters["team"], params=parameters)
-            temp_list = response.json().get('data')
-            print("\n"+team+":")
-            for i in range(len(temp_list)):
-                print(" "+temp_list[i].get('username'))
-    print("\n\n")
+    elif selection == "Participants":
+        selection_types2 = ["All of the participants, grouped by their teams", "Participants in a given team"]
+        prompt2 = inquirer.prompt([inquirer.List("selection2", choices=selection_types2)])
+        selection2 = prompt2["selection2"]
 
-while True:
-    if __name__ == "__main__":
-        main()
+        participants_data = response_participants.get('data')
+
+        # List of teams (keys in the participants data)
+        teams = list(participants_data.keys())
+
+        if selection2 == "All of the participants, grouped by their teams":
+            for team, members in participants_data.items():
+                print(f"{team}:")
+                for member in members:
+                    print(f"  {member.get('username')}")
+                print()
+
+        elif selection2 == "Participants in a given team":
+            team_selection = inquirer.prompt([inquirer.List("team_selection", message="Choose Team", choices=teams)])
+            team = team_selection['team']
+            team_members = participants_data.get(team, [])
+            print(f"\n{team}:")
+            for member in team_members:
+                print(f"  {member.get('username')}")
+
+    elif selection == "Exit":
+        return -1
+    print("\n")
+
+
+if __name__ == "__main__":
+    while main() != -1:
+        pass
+    exit()
